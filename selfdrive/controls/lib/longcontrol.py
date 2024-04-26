@@ -1,5 +1,6 @@
 from cereal import car
 from openpilot.common.numpy_fast import clip, interp
+from openpilot.common.params import Params
 from openpilot.common.realtime import DT_CTRL
 from openpilot.selfdrive.controls.lib.drive_helpers import CONTROL_N, apply_deadzone
 from openpilot.selfdrive.controls.lib.pid import PIDController
@@ -59,6 +60,12 @@ class LongControl:
                              k_f=CP.longitudinalTuning.kf, rate=1 / DT_CTRL)
     self.v_pid = 0.0
     self.last_output_accel = 0.0
+
+    # FrogPilot variables
+    self.params = Params()
+    self.params_memory = Params("/dev/shm/params")
+
+    self.update_frogpilot_params()
 
   def reset(self, v_pid):
     """Reset PID controller and change setpoint"""
@@ -129,4 +136,20 @@ class LongControl:
 
     self.last_output_accel = clip(output_accel, accel_limits[0], accel_limits[1])
 
+    if self.params_memory.get_bool("FrogPilotTogglesUpdated"):
+      self.update_frogpilot_params()
+
     return self.last_output_accel
+
+  def update_frogpilot_params(self):
+    kiV = [self.params.get_float("kiV1"), self.params.get_float("kiV2"), self.params.get_float("kiV3"), self.params.get_float("kiV4")]
+    kpV = [self.params.get_float("kpV1"), self.params.get_float("kpV2"), self.params.get_float("kpV3"), self.params.get_float("kpV4")]
+
+    if self.params.get_bool("Tuning"):
+      self.pid = PIDController((self.CP.longitudinalTuning.kpBP, kpV),
+                               (self.CP.longitudinalTuning.kiBP, kiV),
+                               k_f=self.CP.longitudinalTuning.kf, rate=1 / DT_CTRL)
+    else:
+      self.pid = PIDController((self.CP.longitudinalTuning.kpBP, self.CP.longitudinalTuning.kpV),
+                               (self.CP.longitudinalTuning.kiBP, self.CP.longitudinalTuning.kiV),
+                               k_f=self.CP.longitudinalTuning.kf, rate=1 / DT_CTRL)

@@ -47,6 +47,16 @@ FrogPilotControlsPanel::FrogPilotControlsPanel(SettingsWindow *parent) : FrogPil
   isRelease = branch == "FrogPilot";
 
   const std::vector<std::tuple<QString, QString, QString, QString>> controlToggles {
+    {"Tuning", tr("Tuning"), tr(""), "../assets/offroad/icon_settings.png"},
+    {"kiV1", tr("kiV1"), tr(""), ""},
+    {"kiV2", tr("kiV2"), tr(""), ""},
+    {"kiV3", tr("kiV3"), tr(""), ""},
+    {"kiV4", tr("kiV4"), tr(""), ""},
+    {"kpV1", tr("kpV1"), tr(""), ""},
+    {"kpV2", tr("kpV2"), tr(""), ""},
+    {"kpV3", tr("kpV3"), tr(""), ""},
+    {"kpV4", tr("kpV4"), tr(""), ""},
+
     {"AlwaysOnLateral", tr("Always on Lateral"), tr("Maintain openpilot lateral control when the brake or gas pedals are used.\n\nDeactivation occurs only through the 'Cruise Control' button."), "../frogpilot/assets/toggle_icons/icon_always_on_lateral.png"},
     {"AlwaysOnLateralMain", tr("Enable On Cruise Main"), tr("Enable 'Always On Lateral' by clicking your 'Cruise Control' button without requring openpilot to be enabled first."), ""},
     {"PauseAOLOnBrake", tr("Pause On Brake"), tr("Pause 'Always On Lateral' when the brake pedal is being pressed below the set speed."), ""},
@@ -143,7 +153,19 @@ FrogPilotControlsPanel::FrogPilotControlsPanel(SettingsWindow *parent) : FrogPil
   for (const auto &[param, title, desc, icon] : controlToggles) {
     ParamControl *toggle;
 
-    if (param == "AlwaysOnLateral") {
+    if (param == "Tuning") {
+      FrogPilotParamManageControl *tuningToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      QObject::connect(tuningToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+        openParentToggle();
+        for (auto &[key, toggle] : toggles) {
+          toggle->setVisible(tuningKeys.find(key.c_str()) != tuningKeys.end());
+        }
+      });
+      toggle = tuningToggle;
+    } else if (tuningKeys.find(param) != tuningKeys.end()) {
+      toggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 2, std::map<int, QString>(), this, false, "", 1, 0.01);
+
+    } else if (param == "AlwaysOnLateral") {
       FrogPilotParamManageControl *aolToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
       QObject::connect(aolToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
         openParentToggle();
@@ -1045,6 +1067,7 @@ void FrogPilotControlsPanel::hideToggles() {
                       speedLimitControllerControlsKeys.find(key.c_str()) != speedLimitControllerControlsKeys.end() ||
                       speedLimitControllerQOLKeys.find(key.c_str()) != speedLimitControllerQOLKeys.end() ||
                       speedLimitControllerVisualsKeys.find(key.c_str()) != speedLimitControllerVisualsKeys.end() ||
+                      tuningKeys.find(key.c_str()) != tuningKeys.end() ||
                       visionTurnControlKeys.find(key.c_str()) != visionTurnControlKeys.end();
     toggle->setVisible(!subToggles);
   }
