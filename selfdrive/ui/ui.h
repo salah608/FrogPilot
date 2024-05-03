@@ -263,6 +263,7 @@ typedef struct UIScene {
   float path_edge_width;
   float path_width;
   float road_edge_width;
+  float steer;
   float speed_limit;
   float speed_limit_offset;
   float speed_limit_overridden_speed;

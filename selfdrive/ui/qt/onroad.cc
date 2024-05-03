@@ -246,7 +246,34 @@ void OnroadWindow::primeChanged(bool prime) {
 
 void OnroadWindow::paintEvent(QPaintEvent *event) {
   QPainter p(this);
-  p.fillRect(rect(), QColor(bg.red(), bg.green(), bg.blue(), 255));
+  QRect rect = this->rect();
+
+  p.fillRect(rect, QColor(bg.red(), bg.green(), bg.blue(), 255));
+
+  QLinearGradient gradient(rect.topLeft(), rect.bottomLeft());
+  gradient.setColorAt(0.0, QColor(201, 34, 49, 255));
+  gradient.setColorAt(0.25, QColor(218, 111, 37, 241));
+  gradient.setColorAt(0.5, QColor(255, 246, 0, 255));
+  gradient.setColorAt(0.75, QColor(23, 134, 68, 242));
+  gradient.setColorAt(1.0, QColor(23, 134, 68, 242));
+
+  QBrush brush(gradient);
+  int fillWidth = UI_BORDER_SIZE;
+
+  steer = 0.10 * scene.steer + 0.90 * steer;
+  int visibleHeight = rect.height() * steer;
+
+  if (scene.steering_angle_deg > 0) {
+    QRect leftRect(rect.x(), rect.y() + rect.height() - visibleHeight, fillWidth, visibleHeight);
+    p.fillRect(leftRect, brush);
+    QRect leftRectHidden(rect.x(), rect.y(), fillWidth, rect.height() - visibleHeight);
+    p.fillRect(leftRectHidden, QColor(bg.red(), bg.green(), bg.blue(), 255));
+  } else if (scene.steering_angle_deg < 0) {
+    QRect rightRect(rect.x() + rect.width() - fillWidth, rect.y() + rect.height() - visibleHeight, fillWidth, visibleHeight);
+    p.fillRect(rightRect, brush);
+    QRect rightRectHidden(rect.x() + rect.width() - fillWidth, rect.y(), fillWidth, rect.height() - visibleHeight);
+    p.fillRect(rightRectHidden, QColor(bg.red(), bg.green(), bg.blue(), 255));
+  }
 
   if (scene.fps_counter) {
     qint64 currentMillis = QDateTime::currentMSecsSinceEpoch();
@@ -284,10 +311,9 @@ void OnroadWindow::paintEvent(QPaintEvent *event) {
     p.setRenderHint(QPainter::TextAntialiasing);
     p.setPen(Qt::white);
 
-    QRect currentRect = rect();
     int textWidth = p.fontMetrics().horizontalAdvance(fpsDisplayString);
-    int xPos = (currentRect.width() - textWidth) / 2;
-    int yPos = currentRect.bottom() - 5;
+    int xPos = (rect.width() - textWidth) / 2;
+    int yPos = rect.bottom() - 5;
 
     p.drawText(xPos, yPos, fpsDisplayString);
 
@@ -296,12 +322,12 @@ void OnroadWindow::paintEvent(QPaintEvent *event) {
 
   QString logicsDisplayString = QString();
   if (scene.show_jerk) {
-    logicsDisplayString += QString("Acceleration Jerk: %1 (%2%3) | Speed Jerk: %4 (%5%6) | ")
+    logicsDisplayString += QString("Acceleration Jerk: %1 (%2%3) | Pedal Jerk: %4 (%5%6) | ")
       .arg(scene.acceleration_jerk, 0, 'f', 3)
-      .arg(scene.acceleration_jerk_difference > 0 ? "-" : "+", 0)
+      .arg(scene.acceleration_jerk_difference > 0 ? "-" : "", 0)
       .arg(scene.acceleration_jerk_difference, 0, 'f', 3)
       .arg(scene.ego_jerk, 0, 'f', 3)
-      .arg(scene.ego_jerk_difference > 0 ? "-" : "+", 0)
+      .arg(scene.ego_jerk_difference > 0 ? "-" : "", 0)
       .arg(scene.ego_jerk_difference, 0, 'f', 3);
   }
   if (scene.show_tuning) {
@@ -322,10 +348,9 @@ void OnroadWindow::paintEvent(QPaintEvent *event) {
     p.setRenderHint(QPainter::TextAntialiasing);
     p.setPen(Qt::white);
 
-    QRect currentRect = rect();
     int logicsWidth = p.fontMetrics().horizontalAdvance(logicsDisplayString);
-    int logicsX = (currentRect.width() - logicsWidth) / 2;
-    int logicsY = currentRect.top() + 27;
+    int logicsX = (rect.width() - logicsWidth) / 2;
+    int logicsY = rect.top() + 27;
 
     p.drawText(logicsX, logicsY, logicsDisplayString);
     update();

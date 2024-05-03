@@ -223,6 +223,10 @@ static void update_state(UIState *s) {
   } else if ((s->sm->frame - s->sm->rcv_frame("pandaStates")) > 5*UI_FREQ) {
     scene.pandaType = cereal::PandaState::PandaType::UNKNOWN;
   }
+  if (sm.updated("carControl")) {
+    auto carControl = sm["carControl"].getCarControl();
+    scene.steer = carControl.getActuators().getSteer();
+  }
   if (sm.updated("carParams")) {
     scene.longitudinal_control = sm["carParams"].getCarParams().getOpenpilotLongitudinalControl();
     ui_update_frogpilot_params(s);
@@ -436,7 +440,7 @@ UIState::UIState(QObject *parent) : QObject(parent) {
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState",
     "pandaStates", "carParams", "driverMonitoringState", "carState", "liveLocationKalman", "driverStateV2",
     "wideRoadCameraState", "managerState", "navInstruction", "navRoute", "uiPlan", "liveTorqueParameters",
-    "frogpilotCarControl", "frogpilotDeviceState", "frogpilotPlan",
+    "frogpilotCarControl", "frogpilotDeviceState", "frogpilotPlan", "carControl",
   });
 
   Params params;
