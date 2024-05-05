@@ -763,7 +763,7 @@ FrogPilotControlsPanel::FrogPilotControlsPanel(SettingsWindow *parent) : FrogPil
 
           if (selection == tr("Lowest") || selection == tr("Highest") || selection == tr("None")) break;
 
-          updateToggles();
+          updateFrogPilotToggles();
         }
 
         selectedPriorities.removeAll(tr("None"));
@@ -801,17 +801,9 @@ FrogPilotControlsPanel::FrogPilotControlsPanel(SettingsWindow *parent) : FrogPil
     addItem(toggle);
     toggles[param.toStdString()] = toggle;
 
-    QObject::connect(toggle, &ToggleControl::toggleFlipped, [this]() {
-      updateToggles();
-    });
-
-    QObject::connect(static_cast<FrogPilotButtonParamControl*>(toggle), &FrogPilotButtonParamControl::buttonClicked, [this]() {
-      updateToggles();
-    });
-
-    QObject::connect(static_cast<FrogPilotParamValueControl*>(toggle), &FrogPilotParamValueControl::valueChanged, [this]() {
-      updateToggles();
-    });
+    QObject::connect(toggle, &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
+    QObject::connect(static_cast<FrogPilotButtonParamControl*>(toggle), &FrogPilotButtonParamControl::buttonClicked, &updateFrogPilotToggles);
+    QObject::connect(static_cast<FrogPilotParamValueControl*>(toggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
 
     QObject::connect(toggle, &AbstractControl::showDescriptionEvent, [this]() {
       update();
@@ -894,14 +886,6 @@ void FrogPilotControlsPanel::updateState(const UIState &s) {
 
   downloadModelBtn->setEnabled(s.scene.online);
   modelManagerToggle->setEnabled(!s.scene.started || s.scene.parked);
-}
-
-void FrogPilotControlsPanel::updateToggles() {
-  std::thread([this]() {
-    paramsMemory.putBool("FrogPilotTogglesUpdated", true);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    paramsMemory.putBool("FrogPilotTogglesUpdated", false);
-  }).detach();
 }
 
 void FrogPilotControlsPanel::updateCarToggles() {
