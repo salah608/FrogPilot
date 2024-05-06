@@ -199,6 +199,8 @@ def manager_init(frogpilot_functions) -> None:
     ("kpV2", "1.00"),
     ("kpV3", "0.8"),
     ("kpV4", "0.8"),
+    ("MapAcceleration", "0"),
+    ("MapDeceleration", "0"),
     ("MapsSelected", ""),
     ("MapboxPublicKey", ""),
     ("MapboxSecretKey", ""),
