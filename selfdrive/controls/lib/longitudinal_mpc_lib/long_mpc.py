@@ -325,8 +325,6 @@ class LongitudinalMpc:
 
   def process_lead(self, lead, increased_stopping_distance=0):
     v_ego = self.x0[1]
-    increased_stopping_distance = max(increased_stopping_distance - v_ego, 0)
-
     if lead is not None and lead.status:
       x_lead = lead.dRel - increased_stopping_distance
       v_lead = lead.vLead

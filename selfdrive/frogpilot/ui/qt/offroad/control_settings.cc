@@ -884,9 +884,9 @@ FrogPilotControlsPanel::FrogPilotControlsPanel(SettingsWindow *parent) : FrogPil
   steerRatioToggle = static_cast<FrogPilotParamValueToggleControl*>(toggles["SteerRatio"]);
 
   QObject::connect(steerRatioToggle, &FrogPilotParamValueToggleControl::buttonClicked, this, [this]() {
-    params.putFloatNonBlocking("SteerRatio", steerRatioStock);
-    params.putBoolNonBlocking("ResetSteerRatio", false);
-    update();
+    params.putFloat("SteerRatio", steerRatioStock);
+    params.putBool("ResetSteerRatio", false);
+    steerRatioToggle->refresh();
   });
 
   QObject::connect(parent, &SettingsWindow::closeParentToggle, this, &FrogPilotControlsPanel::hideToggles);

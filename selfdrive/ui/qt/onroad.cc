@@ -273,7 +273,9 @@ void OnroadWindow::paintEvent(QPaintEvent *event) {
       QRect rightRectHidden(rect.x() + rect.width() - fillWidth, rect.y(), fillWidth, rect.height() - visibleHeight);
       p.fillRect(rightRectHidden, QColor(bg.red(), bg.green(), bg.blue(), 255));
     }
-  } else if (scene.show_blind_spot) {
+  }
+
+  if (scene.show_blind_spot) {
     static int blindspot_frames = 0;
 
     if (scene.blind_spot_left || scene.blind_spot_right) {
@@ -294,7 +296,9 @@ void OnroadWindow::paintEvent(QPaintEvent *event) {
       QRect rightHalf(rect.x() + rect.width() / 2, rect.y(), rect.width() / 2, rect.height());
       p.fillRect(rightHalf, QColor(bg.red(), bg.green(), bg.blue(), 255));
     }
-  } else if (scene.show_signal) {
+  }
+
+  if (scene.show_signal) {
     static int signal_frames = 0;
 
     if (scene.turn_signal_left || scene.turn_signal_right) {
@@ -310,8 +314,7 @@ void OnroadWindow::paintEvent(QPaintEvent *event) {
     if (scene.turn_signal_left) {
       QRect leftHalf(rect.x(), rect.y(), rect.width() / 2, rect.height());
       p.fillRect(leftHalf, QColor(bg.red(), bg.green(), bg.blue(), 255));
-    }
-    if (scene.turn_signal_right) {
+    } else if (scene.turn_signal_right) {
       QRect rightHalf(rect.x() + rect.width() / 2, rect.y(), rect.width() / 2, rect.height());
       p.fillRect(rightHalf, QColor(bg.red(), bg.green(), bg.blue(), 255));
     }
