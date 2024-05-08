@@ -15,7 +15,7 @@ from openpilot.common.swaglog import cloudlog
 
 from openpilot.system import micd
 
-from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_variables import FrogPilotToggles
+from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_variables import FrogPilotVariables
 
 SAMPLE_RATE = 48000
 SAMPLE_BUFFER = 4096 # (approx 100ms)
@@ -69,8 +69,9 @@ def check_controls_timeout_alert(sm):
 class Soundd:
   def __init__(self):
     # FrogPilot variables
+    self.frogPilot_toggles = FrogPilotVariables.toggles
+
     self.params = Params()
-    self.params_memory = Params("/dev/shm/params")
 
     self.previous_sound_directory = None
     self.random_events_directory = BASEDIR + "/selfdrive/frogpilot/assets/random_events/sounds/"
@@ -204,7 +205,9 @@ class Soundd:
         assert stream.active
 
         # Update FrogPilot parameters
-        if self.params_memory.get_bool("FrogPilotTogglesUpdated"):
+        if FrogPilotVariables.toggles_updated:
+          FrogPilotVariables.update_frogpilot_params(True)
+          self.frogPilot_toggles = FrogPilotVariables.toggles
           self.update_frogpilot_params()
 
   def update_frogpilot_params(self):
@@ -245,14 +248,14 @@ class Soundd:
       11: "world_frog_day",
     }
 
-    if FrogPilotToggles.current_holiday_theme != 0:
-      theme_name = holiday_theme_configuration.get(FrogPilotToggles.current_holiday_theme)
+    if self.frogPilot_toggles.current_holiday_theme != 0:
+      theme_name = holiday_theme_configuration.get(self.frogPilot_toggles.current_holiday_theme)
       self.sound_directory = BASEDIR + ("/selfdrive/frogpilot/assets/holiday_themes/" + theme_name + "/sounds/")
       self.goat_scream = False
     else:
-      theme_name = theme_configuration.get(FrogPilotToggles.custom_sounds)
-      self.sound_directory = BASEDIR + ("/selfdrive/frogpilot/assets/custom_themes/" + theme_name + "/sounds/" if FrogPilotToggles.custom_sounds != 0 else "/selfdrive/assets/sounds/")
-      self.goat_scream = FrogPilotToggles.goat_scream
+      theme_name = theme_configuration.get(self.frogPilot_toggles.custom_sounds)
+      self.sound_directory = BASEDIR + ("/selfdrive/frogpilot/assets/custom_themes/" + theme_name + "/sounds/" if self.frogPilot_toggles.custom_sounds != 0 else "/selfdrive/assets/sounds/")
+      self.goat_scream = self.frogPilot_toggles.goat_scream
 
     if self.sound_directory != self.previous_sound_directory:
       self.load_sounds()

@@ -17,7 +17,7 @@ else:
 
 from casadi import SX, vertcat
 
-from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_variables import FrogPilotToggles
+from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_variables import FrogPilotVariables
 
 MODEL_NAME = 'long'
 LONG_MPC_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -249,6 +249,9 @@ class LongitudinalMpc:
     self.reset()
     self.source = SOURCES[2]
 
+    # FrogPilot variables
+    self.frogPilot_toggles = FrogPilotVariables.toggles
+
   def reset(self):
     # self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
     self.solver.reset()
@@ -356,7 +359,7 @@ class LongitudinalMpc:
     v_ego = self.x0[1]
     self.status = lead_one.status or lead_two.status
 
-    increase_distance = FrogPilotToggles.increased_stopping_distance if not trafficModeActive else 0
+    increase_distance = self.frogPilot_toggles.increased_stopping_distance if not trafficModeActive else 0
     lead_xv_0 = self.process_lead(lead_one, increase_distance)
     lead_xv_1 = self.process_lead(lead_two)
 
@@ -431,6 +434,10 @@ class LongitudinalMpc:
       if any((lead_1_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], t_follow))- self.x_sol[:,0] < 0.0) and \
          (lead_1_obstacle[0] - lead_0_obstacle[0]):
         self.source = 'lead1'
+
+    if FrogPilotVariables.toggles_updated:
+      FrogPilotVariables.update_frogpilot_params(True)
+      self.frogPilot_toggles = FrogPilotVariables.toggles
 
   def run(self):
     # t0 = time.monotonic()

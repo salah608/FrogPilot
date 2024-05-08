@@ -6,7 +6,7 @@ from openpilot.system.hardware import HARDWARE
 from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.statsd import statlog
 
-from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_variables import FrogPilotToggles
+from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_variables import FrogPilotVariables
 
 CAR_VOLTAGE_LOW_PASS_K = 0.011 # LPF gain for 45s tau (dt/tau / (dt/tau + 1))
 
@@ -37,6 +37,9 @@ class PowerMonitoring:
 
     # Reset capacity if it's low
     self.car_battery_capacity_uWh = max((CAR_BATTERY_CAPACITY_uWh / 10), int(car_battery_capacity_uWh))
+
+    # FrogPilot variables
+    self.frogPilot_toggles = FrogPilotVariables.toggles
 
   # Calculation tick
   def calculate(self, voltage: int | None, ignition: bool):
@@ -84,6 +87,11 @@ class PowerMonitoring:
 
         # Do the integration
         self._perform_integration(now, current_power)
+
+      if FrogPilotVariables.toggles_updated:
+        FrogPilotVariables.update_frogpilot_params()
+        self.frogPilot_toggles = FrogPilotVariables.toggles
+
     except Exception:
       cloudlog.exception("Power monitoring calculation failed")
 
@@ -116,9 +124,9 @@ class PowerMonitoring:
     now = time.monotonic()
     should_shutdown = False
     offroad_time = (now - offroad_timestamp)
-    low_voltage_shutdown = (self.car_voltage_mV < (max(FrogPilotToggles.low_voltage_shutdown, VBATT_PAUSE_CHARGING) * 1e3) and
+    low_voltage_shutdown = (self.car_voltage_mV < (max(self.frogPilot_toggles.low_voltage_shutdown, VBATT_PAUSE_CHARGING) * 1e3) and
                             offroad_time > VOLTAGE_SHUTDOWN_MIN_OFFROAD_TIME_S)
-    should_shutdown |= offroad_time > FrogPilotToggles.device_shutdown_time
+    should_shutdown |= offroad_time > self.frogPilot_toggles.device_shutdown_time
     should_shutdown |= low_voltage_shutdown
     should_shutdown |= (self.car_battery_capacity_uWh <= 0)
     should_shutdown &= not ignition

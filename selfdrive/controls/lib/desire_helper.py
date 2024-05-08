@@ -2,7 +2,7 @@ from cereal import log
 from openpilot.common.conversions import Conversions as CV
 from openpilot.common.realtime import DT_MDL
 
-from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_variables import FrogPilotToggles
+from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_variables import FrogPilotVariables
 
 LaneChangeState = log.LaneChangeState
 LaneChangeDirection = log.LaneChangeDirection
@@ -49,6 +49,8 @@ class DesireHelper:
     self.desire = log.Desire.none
 
     # FrogPilot variables
+    self.frogPilot_toggles = FrogPilotVariables.toggles
+
     self.turn_direction = TurnDirection.none
 
     self.lane_change_completed = False
@@ -61,17 +63,17 @@ class DesireHelper:
     one_blinker = carstate.leftBlinker != carstate.rightBlinker
     below_lane_change_speed = v_ego < LANE_CHANGE_SPEED_MIN
 
-    if not (FrogPilotToggles.lane_detection and one_blinker) or below_lane_change_speed:
+    if not (self.frogPilot_toggles.lane_detection and one_blinker) or below_lane_change_speed:
       lane_available = True
     else:
       desired_lane = frogpilotPlan.laneWidthLeft if carstate.leftBlinker else frogpilotPlan.laneWidthRight
-      lane_available = desired_lane >= FrogPilotToggles.lane_detection_width
+      lane_available = desired_lane >= self.frogPilot_toggles.lane_detection_width
 
     if not lateral_active or self.lane_change_timer > LANE_CHANGE_TIME_MAX:
       self.lane_change_state = LaneChangeState.off
       self.lane_change_direction = LaneChangeDirection.none
       self.turn_direction = TurnDirection.none
-    elif one_blinker and below_lane_change_speed and FrogPilotToggles.turn_desires:
+    elif one_blinker and below_lane_change_speed and self.frogPilot_toggles.turn_desires:
       self.turn_direction = TurnDirection.turnLeft if carstate.leftBlinker else TurnDirection.turnRight
       # Set the "turn_completed" flag to prevent lane changes after completing a turn
       self.turn_completed = True
@@ -98,7 +100,7 @@ class DesireHelper:
                               (carstate.rightBlindspot and self.lane_change_direction == LaneChangeDirection.right))
 
         self.lane_change_wait_timer += DT_MDL
-        if FrogPilotToggles.nudgeless and lane_available and not self.lane_change_completed and self.lane_change_wait_timer >= FrogPilotToggles.lane_change_delay:
+        if self.frogPilot_toggles.nudgeless and lane_available and not self.lane_change_completed and self.lane_change_wait_timer >= self.frogPilot_toggles.lane_change_delay:
           torque_applied = True
           self.lane_change_wait_timer = 0
 
@@ -107,7 +109,7 @@ class DesireHelper:
           self.lane_change_direction = LaneChangeDirection.none
         elif torque_applied and not blindspot_detected:
           self.lane_change_state = LaneChangeState.laneChangeStarting
-          self.lane_change_completed = True if FrogPilotToggles.one_lane_change else False
+          self.lane_change_completed = True if self.frogPilot_toggles.one_lane_change else False
 
       # LaneChangeState.laneChangeStarting
       elif self.lane_change_state == LaneChangeState.laneChangeStarting:
@@ -155,3 +157,7 @@ class DesireHelper:
         self.keep_pulse_timer = 0.0
       elif self.desire in (log.Desire.keepLeft, log.Desire.keepRight):
         self.desire = log.Desire.none
+
+    if FrogPilotVariables.toggles_updated:
+      FrogPilotVariables.update_frogpilot_params(True)
+      self.frogPilot_toggles = FrogPilotVariables.toggles

@@ -15,6 +15,14 @@ class FrogPilotVariables:
 
     self.update_frogpilot_params()
 
+  @property
+  def toggles(self):
+    return self.frogpilot_toggles
+
+  @property
+  def toggles_updated(self):
+    return self.params_memory.get_bool("FrogPilotTogglesUpdated")
+
   def update_frogpilot_params(self, started=False):
     toggles = self.frogpilot_toggles
 
@@ -166,4 +174,3 @@ class FrogPilotVariables:
     toggles.turn_aggressiveness = self.params.get_int("TurnAggressiveness") / 100 if toggles.vision_turn_controller else 1
 
 FrogPilotVariables = FrogPilotVariables()
-FrogPilotToggles = FrogPilotVariables.frogpilot_toggles

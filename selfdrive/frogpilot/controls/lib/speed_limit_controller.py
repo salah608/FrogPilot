@@ -5,7 +5,7 @@ import math
 from openpilot.common.conversions import Conversions as CV
 from openpilot.common.params import Params
 
-from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_variables import FrogPilotToggles
+from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_variables import FrogPilotVariables
 
 R = 6373000.0  # approximate radius of earth in meters
 TO_RADIANS = math.pi / 180
@@ -20,6 +20,8 @@ def distance_to_point(ax, ay, bx, by):
 
 class SpeedLimitController:
   def __init__(self):
+    self.frogPilot_toggles = FrogPilotVariables.toggles
+
     self.params = Params()
     self.params_memory = Params("/dev/shm/params")
 
@@ -35,6 +37,10 @@ class SpeedLimitController:
     self.car_speed_limit = dashboardSpeedLimit
     self.write_map_state(v_ego)
     self.nav_speed_limit = self.get_param_memory("NavSpeedLimit")
+
+    if FrogPilotVariables.toggles_updated:
+      FrogPilotVariables.update_frogpilot_params(True)
+      self.frogPilot_toggles = FrogPilotVariables.toggles
 
   def get_param_memory(self, key, is_json=False, default=None):
     try:
@@ -60,14 +66,14 @@ class SpeedLimitController:
     if self.prv_speed_limit < next_map_speed_limit_value > 1:
       d = distance_to_point(self.lat * TO_RADIANS, self.lon * TO_RADIANS,
                             next_map_speed_limit_lat * TO_RADIANS, next_map_speed_limit_lon * TO_RADIANS)
-      max_d = FrogPilotToggles.map_speed_lookahead_higher * v_ego
+      max_d = self.frogPilot_toggles.map_speed_lookahead_higher * v_ego
       if d < max_d:
         self.map_speed_limit = next_map_speed_limit_value
 
     if self.prv_speed_limit > next_map_speed_limit_value > 1:
       d = distance_to_point(self.lat * TO_RADIANS, self.lon * TO_RADIANS,
                             next_map_speed_limit_lat * TO_RADIANS, next_map_speed_limit_lon * TO_RADIANS)
-      max_d = FrogPilotToggles.map_speed_lookahead_higher_lower * v_ego
+      max_d = self.frogPilot_toggles.map_speed_lookahead_higher_lower * v_ego
       if d < max_d:
         self.map_speed_limit = next_map_speed_limit_value
 
@@ -76,9 +82,9 @@ class SpeedLimitController:
     limits = [self.car_speed_limit, self.map_speed_limit, self.nav_speed_limit]
     filtered_limits = [limit for limit in limits if limit is not None and limit > 1]
 
-    if FrogPilotToggles.speed_limit_priority_highest and filtered_limits:
+    if self.frogPilot_toggles.speed_limit_priority_highest and filtered_limits:
       return float(max(filtered_limits))
-    elif FrogPilotToggles.speed_limit_priority_lowest and filtered_limits:
+    elif self.frogPilot_toggles.speed_limit_priority_lowest and filtered_limits:
       return float(min(filtered_limits))
 
     speed_limits = {
@@ -88,16 +94,16 @@ class SpeedLimitController:
     }
 
     priorities = [
-      FrogPilotToggles.speed_limit_priority1,
-      FrogPilotToggles.speed_limit_priority2,
-      FrogPilotToggles.speed_limit_priority3,
+      self.frogPilot_toggles.speed_limit_priority1,
+      self.frogPilot_toggles.speed_limit_priority2,
+      self.frogPilot_toggles.speed_limit_priority3,
     ]
 
     for priority in priorities:
       if priority in speed_limits and speed_limits[priority] in filtered_limits:
         return float(speed_limits[priority])
 
-    if FrogPilotToggles.use_previous_limit:
+    if self.frogPilot_toggles.use_previous_limit:
       return float(self.prv_speed_limit)
 
     return 0
@@ -105,13 +111,13 @@ class SpeedLimitController:
   @property
   def offset(self):
     if self.speed_limit < 13.5:
-      return FrogPilotToggles.offset1
+      return self.frogPilot_toggles.offset1
     elif self.speed_limit < 24:
-      return FrogPilotToggles.offset2
+      return self.frogPilot_toggles.offset2
     elif self.speed_limit < 29:
-      return FrogPilotToggles.offset3
+      return self.frogPilot_toggles.offset3
     else:
-      return FrogPilotToggles.offset4
+      return self.frogPilot_toggles.offset4
 
   @property
   def desired_speed_limit(self):
@@ -128,6 +134,6 @@ class SpeedLimitController:
 
   @property
   def experimental_mode(self):
-    return self.speed_limit == 0 and FrogPilotToggles.use_experimental_mode
+    return self.speed_limit == 0 and self.frogPilot_toggles.use_experimental_mode
 
 SpeedLimitController = SpeedLimitController()
