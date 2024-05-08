@@ -323,8 +323,6 @@ def manager_init(frogpilot_functions) -> None:
   params.put_bool("IsTestedBranch", is_tested_branch())
   params.put_bool("IsReleaseBranch", is_release_branch())
 
-  params.put_bool("ExperimentalLongitudinalEnabled", False)
-
   # set dongle id
   reg_res = register(show_spinner=True)
   if reg_res:

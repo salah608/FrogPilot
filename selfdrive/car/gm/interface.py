@@ -134,10 +134,10 @@ class CarInterface(CarInterfaceBase):
         ret.longitudinalTuning.kpV = [1.5, 1.125]
         ret.stopAccel = -0.25
 
-      if experimental_long and candidate not in CC_ONLY_CAR:
+      if experimental_long:
         ret.pcmCruise = False
         ret.openpilotLongitudinalControl = True
-        #ret.safetyConfigs[0].safetyParam |= Panda.FLAG_GM_HW_CAM_LONG
+        ret.safetyConfigs[0].safetyParam |= 512
 
     elif candidate in SDGM_CAR:
       ret.experimentalLongitudinalAvailable = False
@@ -273,7 +273,7 @@ class CarInterface(CarInterfaceBase):
         ret.longitudinalTuning.kf = 0.15
         ret.stoppingDecelRate = 0.8
       else:  # Pedal used for SNG, ACC for longitudinal control otherwise
-        #ret.safetyConfigs[0].safetyParam |= Panda.FLAG_GM_HW_CAM_LONG
+        ret.safetyConfigs[0].safetyParam |= 1024
         ret.startingState = True
         ret.vEgoStopping = 0.25
         ret.vEgoStarting = 0.25
