@@ -67,7 +67,7 @@ class RouteEngine:
       self.mapbox_host = "https://maps.comma.ai"
 
     # FrogPilot variables
-    self.frogPilot_toggles = FrogPilotVariables.toggles
+    self.frogpilot_toggles = FrogPilotVariables.toggles
 
     self.stop_coord = []
     self.stop_signal = []
@@ -95,7 +95,7 @@ class RouteEngine:
 
     if FrogPilotVariables.toggles_updated:
       FrogPilotVariables.update_frogpilot_params(True)
-      self.frogPilot_toggles = FrogPilotVariables.toggles
+      self.frogpilot_toggles = FrogPilotVariables.toggles
 
   def update_location(self):
     location = self.sm['liveLocationKalman']
@@ -218,7 +218,7 @@ class RouteEngine:
         self.route_geometry = []
 
         # Iterate through the steps in self.route to find "stop_sign" and "traffic_light"
-        if self.frogPilot_toggles.conditional_navigation_intersections:
+        if self.frogpilot_toggles.conditional_navigation_intersections:
           self.stop_signal = []
           self.stop_coord = []
 
@@ -380,7 +380,7 @@ class RouteEngine:
           self.clear_route()
 
     # 5-10 Seconds to stop condition based on the current speed or minimum of 25 meters
-    if self.frogPilot_toggles.conditional_navigation:
+    if self.frogpilot_toggles.conditional_navigation:
       v_ego = self.sm['carState'].vEgo
       seconds_to_stop = interp(v_ego, [0, 22.3, 44.7], [5, 10, 10])
 
@@ -392,12 +392,12 @@ class RouteEngine:
 
         # Calculate the distance to the stopSign or trafficLight
         distance_to_condition = self.last_position.distance_to(self.stop_coord[index])
-        self.approaching_intersection = self.frogPilot_toggles.conditional_navigation_intersections and distance_to_condition < max((seconds_to_stop * v_ego), 25)
+        self.approaching_intersection = self.frogpilot_toggles.conditional_navigation_intersections and distance_to_condition < max((seconds_to_stop * v_ego), 25)
       else:
         self.approaching_intersection = False  # No more stopSign or trafficLight in array
 
       # Determine if NoO distance to maneuver is upcoming
-      self.approaching_turn = self.frogPilot_toggles.conditional_navigation_turns and distance_to_maneuver_along_geometry < max((seconds_to_stop * v_ego), 25)
+      self.approaching_turn = self.frogpilot_toggles.conditional_navigation_turns and distance_to_maneuver_along_geometry < max((seconds_to_stop * v_ego), 25)
     else:
       self.approaching_intersection = False
       self.approaching_turn = False

@@ -17,8 +17,6 @@ else:
 
 from casadi import SX, vertcat
 
-from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_variables import FrogPilotVariables
-
 MODEL_NAME = 'long'
 LONG_MPC_DIR = os.path.dirname(os.path.abspath(__file__))
 EXPORT_DIR = os.path.join(LONG_MPC_DIR, "c_generated_code")
@@ -249,9 +247,6 @@ class LongitudinalMpc:
     self.reset()
     self.source = SOURCES[2]
 
-    # FrogPilot variables
-    self.frogPilot_toggles = FrogPilotVariables.toggles
-
   def reset(self):
     # self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
     self.solver.reset()
@@ -355,11 +350,11 @@ class LongitudinalMpc:
     self.cruise_min_a = min_a
     self.max_a = max_a
 
-  def update(self, lead_one, lead_two, v_cruise, x, v, a, j, radarless_model, t_follow, trafficModeActive, personality=log.LongitudinalPersonality.standard):
+  def update(self, lead_one, lead_two, v_cruise, x, v, a, j, t_follow, trafficModeActive, frogpilot_toggles, personality=log.LongitudinalPersonality.standard):
     v_ego = self.x0[1]
     self.status = lead_one.status or lead_two.status
 
-    increase_distance = self.frogPilot_toggles.increased_stopping_distance if not trafficModeActive else 0
+    increase_distance = frogpilot_toggles.increased_stopping_distance if not trafficModeActive else 0
     lead_xv_0 = self.process_lead(lead_one, increase_distance)
     lead_xv_1 = self.process_lead(lead_two)
 
@@ -420,7 +415,7 @@ class LongitudinalMpc:
     self.params[:,4] = t_follow
 
     self.run()
-    lead_probability = lead_one.prob if radarless_model else lead_one.modelProb
+    lead_probability = lead_one.prob if frogpilot_toggles.radarless_model else lead_one.modelProb
     if (np.any(lead_xv_0[FCW_IDXS,0] - self.x_sol[FCW_IDXS,0] < CRASH_DISTANCE) and lead_probability > 0.9):
       self.crash_cnt += 1
     else:
@@ -434,10 +429,6 @@ class LongitudinalMpc:
       if any((lead_1_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], t_follow))- self.x_sol[:,0] < 0.0) and \
          (lead_1_obstacle[0] - lead_0_obstacle[0]):
         self.source = 'lead1'
-
-    if FrogPilotVariables.toggles_updated:
-      FrogPilotVariables.update_frogpilot_params(True)
-      self.frogPilot_toggles = FrogPilotVariables.toggles
 
   def run(self):
     # t0 = time.monotonic()

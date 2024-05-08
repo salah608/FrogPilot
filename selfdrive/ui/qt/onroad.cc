@@ -277,46 +277,56 @@ void OnroadWindow::paintEvent(QPaintEvent *event) {
 
   if (scene.show_blind_spot) {
     static int blindspot_frames = 0;
+    QColor blindspot_border_color;
 
     if (scene.blind_spot_left || scene.blind_spot_right) {
       if (sm.frame % 10 == 0) {
-        bg = bg_colors[STATUS_TRAFFIC_MODE_ACTIVE];
+        blindspot_border_color = bg_colors[STATUS_TRAFFIC_MODE_ACTIVE];
         blindspot_frames = 5;
       } else if (blindspot_frames > 0) {
-        bg = bg_colors[STATUS_TRAFFIC_MODE_ACTIVE];
+        blindspot_border_color = bg_colors[STATUS_TRAFFIC_MODE_ACTIVE];
         blindspot_frames--;
+      } else {
+        blindspot_border_color = bg;
       }
-    }
 
-    if (scene.blind_spot_left) {
-      QRect leftHalf(rect.x(), rect.y(), rect.width() / 2, rect.height());
-      p.fillRect(leftHalf, QColor(bg.red(), bg.green(), bg.blue(), 255));
-    }
-    if (scene.blind_spot_right) {
-      QRect rightHalf(rect.x() + rect.width() / 2, rect.y(), rect.width() / 2, rect.height());
-      p.fillRect(rightHalf, QColor(bg.red(), bg.green(), bg.blue(), 255));
+      if (scene.blind_spot_left) {
+        QRect leftHalf(rect.x(), rect.y(), rect.width() / 2, rect.height());
+        p.fillRect(leftHalf, QColor(blindspot_border_color.red(), blindspot_border_color.green(), blindspot_border_color.blue(), 255));
+      }
+      if (scene.blind_spot_right) {
+        QRect rightHalf(rect.x() + rect.width() / 2, rect.y(), rect.width() / 2, rect.height());
+        p.fillRect(rightHalf, QColor(blindspot_border_color.red(), blindspot_border_color.green(), blindspot_border_color.blue(), 255));
+      }
+    } else {
+      blindspot_frames = 0;
     }
   }
 
   if (scene.show_signal) {
     static int signal_frames = 0;
+    QColor signal_border_color;
 
     if (scene.turn_signal_left || scene.turn_signal_right) {
       if (sm.frame % 20 == 0) {
-        bg = bg_colors[STATUS_TURN_SIGNAL_ACTIVE];
+        signal_border_color = bg_colors[STATUS_TURN_SIGNAL_ACTIVE];
         signal_frames = 10;
       } else if (signal_frames > 0) {
-        bg = bg_colors[STATUS_TURN_SIGNAL_ACTIVE];
+        signal_border_color = bg_colors[STATUS_TURN_SIGNAL_ACTIVE];
         signal_frames--;
+      } else {
+        signal_border_color = bg;
       }
-    }
 
-    if (scene.turn_signal_left) {
-      QRect leftHalf(rect.x(), rect.y(), rect.width() / 2, rect.height());
-      p.fillRect(leftHalf, QColor(bg.red(), bg.green(), bg.blue(), 255));
-    } else if (scene.turn_signal_right) {
-      QRect rightHalf(rect.x() + rect.width() / 2, rect.y(), rect.width() / 2, rect.height());
-      p.fillRect(rightHalf, QColor(bg.red(), bg.green(), bg.blue(), 255));
+      if (scene.turn_signal_left) {
+        QRect leftHalf(rect.x(), rect.y(), rect.width() / 2, rect.height());
+        p.fillRect(leftHalf, QColor(signal_border_color.red(), signal_border_color.green(), signal_border_color.blue(), 255));
+      } else if (scene.turn_signal_right) {
+        QRect rightHalf(rect.x() + rect.width() / 2, rect.y(), rect.width() / 2, rect.height());
+        p.fillRect(rightHalf, QColor(signal_border_color.red(), signal_border_color.green(), signal_border_color.blue(), 255));
+      }
+    } else {
+      signal_frames = 0;
     }
   }
 

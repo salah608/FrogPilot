@@ -40,7 +40,18 @@ class FrogPilotVariables:
 
     toggles.radarless_model = self.params.get("Model", block=True, encoding='utf-8') in RADARLESS_MODELS
 
-    toggles.always_on_lateral_pause_speed = self.params.get_int("PauseAOLOnBrake")
+    toggles.alert_volume_control = self.params.get_bool("AlertVolumeControl")
+    toggles.disengage_volume = self.params.get_int("DisengageVolume") if toggles.alert_volume_control else 100
+    toggles.engage_volume = self.params.get_int("EngageVolume") if toggles.alert_volume_control else 100
+    toggles.prompt_volume = self.params.get_int("PromptVolume") if toggles.alert_volume_control else 100
+    toggles.promptDistracted_volume = self.params.get_int("PromptDistractedVolume") if toggles.alert_volume_control else 100
+    toggles.refuse_volume = self.params.get_int("RefuseVolume") if toggles.alert_volume_control else 100
+    toggles.warningSoft_volume = self.params.get_int("WarningSoftVolume") if toggles.alert_volume_control else 100
+    toggles.warningImmediate_volume = self.params.get_int("WarningImmediateVolume") if toggles.alert_volume_control else 100
+
+    toggles.always_on_lateral_pause_speed = self.params.get_int("PauseAOLOnBrake") if self.params.get_bool("AlwaysOnLateral") else 0
+
+    toggles.automatic_updates = self.params.get_bool("AutomaticUpdates")
 
     toggles.cluster_offset = self.params.get_float("ClusterOffset") if car_name == "toyota" else 1
 
@@ -123,6 +134,8 @@ class FrogPilotVariables:
     toggles.smoother_braking_jerk = toggles.smoother_braking and self.params.get_bool("SmoothBrakingJerk")
     toggles.sport_plus = longitudinal_tune and toggles.acceleration_profile == 3
     toggles.traffic_mode = longitudinal_tune and self.params.get_bool("TrafficMode")
+
+    toggles.model_selector = self.params.get_bool("ModelSelector")
 
     quality_of_life = self.params.get_bool("QOLControls")
     toggles.custom_cruise_increase = self.params.get_int("CustomCruise") if quality_of_life and not pcm_cruise else 1

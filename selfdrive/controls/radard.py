@@ -214,7 +214,7 @@ class RadarD:
     self.ready = False
 
     # FrogPilot variables
-    self.frogPilot_toggles = FrogPilotVariables.toggles
+    self.frogpilot_toggles = FrogPilotVariables.toggles
 
   def update(self, sm: messaging.SubMaster, rr: Optional[car.RadarData]):
     self.ready = sm.seen['modelV2']
@@ -265,12 +265,12 @@ class RadarD:
       model_v_ego = self.v_ego
     leads_v3 = sm['modelV2'].leadsV3
     if len(leads_v3) > 1:
-      self.radar_state.leadOne = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[0], model_v_ego, self.frogPilot_toggles.lead_detection_threshold, low_speed_override=True)
-      self.radar_state.leadTwo = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[1], model_v_ego, self.frogPilot_toggles.lead_detection_threshold, low_speed_override=False)
+      self.radar_state.leadOne = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[0], model_v_ego, self.frogpilot_toggles.lead_detection_threshold, low_speed_override=True)
+      self.radar_state.leadTwo = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[1], model_v_ego, self.frogpilot_toggles.lead_detection_threshold, low_speed_override=False)
 
     if FrogPilotVariables.toggles_updated:
       FrogPilotVariables.update_frogpilot_params(True)
-      self.frogPilot_toggles = FrogPilotVariables.toggles
+      self.frogpilot_toggles = FrogPilotVariables.toggles
 
   def publish(self, pm: messaging.PubMaster, lag_ms: float):
     assert self.radar_state is not None
